@@ -4,15 +4,16 @@ import http.client
 from urllib.parse import urlencode
 import json
 
-if len(argv)<4:
-    raise ValueError("Usage: python3 dwbot.py username password token")
+if len(argv)<3:
+    raise ValueError("Usage: python3 dwbot.py username password")
     
 
 class DWSession():
     def __init__(self, username, password):
         self.username = username
         self.password = password
-        self.conn = http.client.HTTPConnection("pdw3.pokemon-gl.com")
+        self.TOKEN = None
+        self.conn = http.client.HTTPConnection("en.pokemon-gl.com")
         
     def login(self):
         print("Logging in.")
@@ -45,15 +46,23 @@ class DWSession():
         gl_conn.request("GET", get_relative(new_url), None, {"Cookie": cookie})
         r = gl_conn.getresponse()
         self.PMDSUSSID = r.getheader("Set-Cookie").split(";")[0][10:]
-        print ("Got PMDSUSSID!: {}".format(self.PMDSUSSID))
-        #self.PMDSUSSID = argv[1] # From cookie
-        self.TOKEN = argv[3] # PWD-specific token, from URL
+        print ("Got PMDSUSSID.")
+        init = self.request_page("pgl.top.init", ping="0")
+        self.member = init['member']
+        self.TOKEN = init['token']
+        print ("Got TOKEN.  Login successful!")
+        print("{} - game {}, Pokémon {}".format(self.member['pgl_name'], self.member['rom_name'], self.member['pokemon_name']))
+        #self.TOKEN = argv[3] # PWD-specific token, from URL
 
-    def request_page(self, p, member_id= None):
+    def request_page(self, p, member_id= None, ping= None):
         url = "/api/?"
-        get = [("p", p), ("token", self.TOKEN)]
+        get = [("p", p)]
+        if ping != None:
+            get.append(("ping", ping))
         if member_id != None:
             get.append(("member_savedata_id", member_id))
+        if self.TOKEN != None:
+            get.append(("token", self.TOKEN))
         url += urlencode(get)
         self.conn.request("GET", url, None, {"Cookie": "PMDSUSSID={}; locale=en".format(self.PMDSUSSID)})
         r = self.conn.getresponse()

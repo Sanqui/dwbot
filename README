@@ -1,19 +1,17 @@
 An experimental bot to automatize actions for the Pokémon Dream World.
 This script is licenced under the zlib licence.  See LICENCE for details.
 
-Throws a RuntimeError if the server returns an error.
-
-The following does not currently apply.
 Current usage:
-$ python3 dwbot.py PMDSUSSID TOKEN
-where PMDSUSSID is from the cookie and TOKEN is from the URL.  Look up one 
-request in Wireshark to see these; they don't seem to change at all, so you 
-only need to do this once (until logging in is implemented).
-
-Current output (hopefully):
-sanky@kuriputo:~/emurom/poké$ python3 dwbot.py [PMDSUSSID] [TOKEN]
+$ python3 dwbot.py username password
+Logging in.
+Got PMDSUSSID.
+Got TOKEN.  Login successful!
+Sanky - game Pokémon Black Version, Pokémon Stunfisk
  Harvestable berries: 0
  Unwatered berries: 0
 List of friends:
 Abumi (Czech Republic)
 Tatertot745 (United States of America)
+
+If you can't play, you'll get an error similar to this:
+RuntimeError: (403, 'Forbidden', {'default': 'Your time to play in the Pokémon DW is over for today.\\nYou can play again tomorrow.', 'is_pdw_timeout': 1})
