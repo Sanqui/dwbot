@@ -4,7 +4,9 @@ This script is licenced under the zlib licence.  See LICENCE for details.
 Current usage:
 $ python3 dwbot.py username password
 Logging in.
-Login successful!
+Successfully logged in, run the script without arguments now.
+$ python3 dwbot.py
+Got token!
 Sanky - game Pokémon Black Version (Buranky), Pokémon Stunfisk
  Harvestable berries: 0
  Unwatered berries: 0
