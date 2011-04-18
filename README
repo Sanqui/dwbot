@@ -4,14 +4,14 @@ This script is licenced under the zlib licence.  See LICENCE for details.
 Current usage:
 $ python3 dwbot.py username password
 Logging in.
-Got PMDSUSSID.
-Got TOKEN.  Login successful!
-Sanky - game Pokémon Black Version, Pokémon Stunfisk
+Login successful!
+Sanky - game Pokémon Black Version (Buranky), Pokémon Stunfisk
  Harvestable berries: 0
  Unwatered berries: 0
 List of friends:
 Abumi (Czech Republic)
 Tatertot745 (United States of America)
 
-If you can't play, you'll get an error similar to this:
+If you can't play, you'll get a nice error similar to this:
 RuntimeError: (403, 'Forbidden', {'default': 'Your time to play in the Pokémon DW is over for today.\\nYou can play again tomorrow.', 'is_pdw_timeout': 1})
+However, you should still get your name and game info.

@@ -1,12 +1,13 @@
 #!/usr/bin/python3
+from os.path import exists
 from sys import argv
+import sys
 import http.client
 from urllib.parse import urlencode
 import json
 
 if len(argv)<3:
-    raise ValueError("Usage: python3 dwbot.py username password")
-    
+    sys.exit("Usage: python3 dwbot.py username password")
 
 class DWSession():
     def __init__(self, username, password):
@@ -15,44 +16,55 @@ class DWSession():
         self.TOKEN = None
         self.conn = http.client.HTTPConnection("en.pokemon-gl.com")
         
-    def login(self):
-        print("Logging in.")
+    def get_PMDSUSSID(self):
         form_conn = http.client.HTTPSConnection("sso.pokemon.com")
-        form_conn.request("GET", "/sso/login?service=https://www.pokemon.com/us/account/pgllogin&locale=en") #/us/account/logout?next=https%3A%2F%2Fsso.pokemon.com%2Fsso%2Flogin%3Fservice%3Dhttps%3A%2F%2Fwww.pokemon.com%2Fus%2Faccount%2Fpgllogin%26locale%3Den%26renew%3Dtrue
+        form_conn.request("GET", "/sso/login?service=https://www.pokemon.com/us/account/pgllogin&locale=en")
         r = form_conn.getresponse()
         data = r.read().decode("utf-8")
         def get_string(s):
             ret = data[data.find(s)+len(s):]
             return ret[:ret.find('"')]
-        action = get_string('<form id="login-form" action="')
-        lt = get_string('<input type="hidden" name="lt" value="')
-        params = {"lt":lt, 'username':self.username, 'password':self.password, '_eventId':'submit', 'service':''}
-        form_conn.request("POST", action, urlencode(params), {"Content-type": "application/x-www-form-urlencoded","Accept": "text/plain"})
+        params = {"lt":get_string('<input type="hidden" name="lt" value="'), 'username':self.username, 'password':self.password, '_eventId':'submit', 'service':''}
+        form_conn.request("POST", get_string('<form id="login-form" action="'), urlencode(params), {"Content-type": "application/x-www-form-urlencoded","Accept": "text/plain"})
         r = form_conn.getresponse()
         data = r.read().decode("utf-8")
         new_url = get_string('top.location.href="')
         if "https://www.pokemon.com/us/account/pgllogin" not in new_url:
             raise ValueError("Failed to login.")
-        cookie = r.getheader("Set-Cookie")
         login_conn = http.client.HTTPSConnection("www.pokemon.com")
         def get_relative(url):
             return "/"+"/".join(url.split("/")[3:])
-        login_conn.request("GET", get_relative(new_url), None, {"Cookie": cookie})
+        login_conn.request("GET", get_relative(new_url), None, {"Cookie": r.getheader("Set-Cookie")})
         r = login_conn.getresponse()
-        cookie = r.getheader("Set-Cookie")
-        new_url = r.getheader("Location")
         data = r.read().decode("utf-8")
         gl_conn = http.client.HTTPConnection("en.pokemon-gl.com")
-        gl_conn.request("GET", get_relative(new_url), None, {"Cookie": cookie})
+        gl_conn.request("GET", get_relative(r.getheader("Location")), None, {"Cookie": r.getheader("Set-Cookie")})
         r = gl_conn.getresponse()
-        self.PMDSUSSID = r.getheader("Set-Cookie").split(";")[0][10:]
-        print ("Got PMDSUSSID.")
+        
+        return r.getheader("Set-Cookie").split(";")[0][10:]
+        
+    def login(self):
+        print("Logging in.")
+        with open("PMDSUSSID", "r") as f:
+            self.PMDSUSSID = f.read().strip()
+        if self.PMDSUSSID == "": 
+            print("Requesting new PMDSUSSID.")
+            self.PMDSUSSID = self.get_PMDSUSSID()
+            with open("PMDSUSSID", "w") as f:
+                f.write(self.PMDSUSSID)
+        
         init = self.request_page("pgl.top.init", ping="0")
         self.member = init['member']
         self.TOKEN = init['token']
-        print ("Got TOKEN.  Login successful!")
-        print("{} - game {}, Pokémon {}".format(self.member['pgl_name'], self.member['rom_name'], self.member['pokemon_name']))
-        #self.TOKEN = argv[3] # PWD-specific token, from URL
+        if self.member == None or self.TOKEN == None:
+            print ("Login failed.  Requesting new PMDSUSSID.")
+            self.PMDSUSSID = self.get_PMDSUSSID()
+            with open("PMDSUSSID", "w") as f:
+                f.write(self.PMDSUSSID)
+            self.login()
+        else:
+            print ("Login successful!")
+            print("{} - game {} ({}), Pokémon {}".format(self.member['pgl_name'], self.member['rom_name'], self.member['player_name'], self.member['pokemon_name']))
 
     def request_page(self, p, member_id= None, ping= None):
         url = "/api/?"
