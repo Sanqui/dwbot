@@ -50,24 +50,30 @@ class DWSession():
         self.member = init['member']
         self.token = init['token']
         if self.member == None or self.token == None:
-            sys.exit ("Login failed.  Run python3 dwbot.py username, or copy the PMDSUSSID for pokemon-gl.com from your browser manually, and paste it in PMDSUSSID.")
+            sys.exit ("Login failed.  Run python3 dwbot.py username, or copy the PMDSUSSID cookie for pokemon-gl.com from your browser manually, and paste it in ./PMDSUSSID.")
         else:
             print ("Got token!")
             if self.member['member_savedata_id'] == None:
                 sys.exit("Please enter the dream world normally first.")
             print("{} - game {} ({}), Pokémon {}".format(self.member['pgl_name'], self.member['rom_name'], self.member['player_name'], self.member['pokemon_name']))
 
-    def request_page(self, p, serv="pdw3", **kvargs):
+    def request_page(self, p, serv="pdw3", action="GET", **kvargs):
         conn = http.client.HTTPConnection(serv+".pokemon-gl.com")
         url = "/api/?"
+        headers = {"Cookie": "PMDSUSSID={}; locale=en".format(self.PMDSUSSID)}
         get = [("p", p)]
         #if member_id != None:
         #    get.append(("member_savedata_id", member_id))
         if self.token != None:
             get.append(("token", self.token))
         get += kvargs.items()
-        url += urlencode(get)
-        conn.request("GET", url, None, {"Cookie": "PMDSUSSID={}; locale=en".format(self.PMDSUSSID)})
+        if action == "GET":
+            url += urlencode(get)
+            data = None
+        elif action == "POST":
+            headers["Content-type"]='application/x-www-form-urlencoded'
+            data = urlencode(get)
+        conn.request(action, url, data, headers)
         r = conn.getresponse()
         data = r.read().decode("utf-8")
         tree = json.loads(data)
@@ -94,7 +100,7 @@ def berry_stats(croft_list):
     unwatered_berries = 0
     for berry in croft_list:
         if berry['kinomi_state']==4: harvestable_berries+=1
-        if int(berry['dirt_hp']) < 50: unwatered_berries+=1
+        elif int(berry['dirt_hp']) < 50 : unwatered_berries+=1
     return ("Berries: {} harvestable, {} unwatered, {} total".format(harvestable_berries, unwatered_berries, len(croft_list)))
     
 dw = DWSession()
@@ -114,3 +120,32 @@ for friend in map_info ['friend_list']:
     area = dw.request_page("pdw.home.friend_island_area", friend_member_savedata_id=member_id)
     berries = dw.request_page("pdw.croft.friend_croft_list", member_savedata_id=member_id)['croft_list']
     print(" {} ({}) - {} friends, {}".format(friend['pgl_name'], friend['country_name'], len(area['friend_list']), berry_stats(berries)))
+    
+if input("Do you want to automatically water berries? ").lower().strip()=="y":
+    try:
+        visited_ids = []
+        def recurs(friend, route):
+            member_id = friend['member_savedata_id']
+            if member_id not in visited_ids:
+                visited_ids.append(member_id)
+                area = dw.request_page("pdw.home.friend_island_area", friend_member_savedata_id=member_id)
+                berries = dw.request_page("pdw.croft.friend_croft_list", member_savedata_id=member_id)['croft_list']
+                unwatered_berries = 0
+                for berry in berries:
+                    if int(berry['dirt_hp']) < 50 and berry['kinomi_state'] != 4: 
+                        unwatered_berries+=1
+                        remains = dw.request_page("pdw.croft.friend_kinomi_watering", action="POST", member_savedata_id=member_id, my_croft_id=berry["my_croft_id"])['remains_watering']
+                        print ("Remains watering: {}".format(remains))
+                        if remains == 0:
+                            sys.exit("Done watering!  Traversed over {} people.".format(len(visited_ids)))
+                if unwatered_berries != 0:
+                    print("{} > {} ({}) - {} unwatered berries".format(" > ".join(route), friend['pgl_name'], friend['country_name'], unwatered_berries))
+                for friend2 in area['friend_list']:
+                    recurs(friend2, route+[friend['pgl_name']]) 
+
+        for friend in map_info ['friend_list']:
+            recurs(friend, [])
+    except KeyboardInterrupt:
+        print("Search aborted.  Traversed over {} people.".format(len(visited_ids)))
+
+

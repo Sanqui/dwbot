@@ -7,15 +7,22 @@ Logging in.
 Successfully logged in, run the script without arguments now.
 $ python3 dwbot.py
 Got token!
-Sanky - game Pokémon Black Version (Buranky), Pokémon Floatzel
-Friend request from: .
+Sanky - game Pokémon Black Version (Buranky), Pokémon Swampert
+Friend request from: Rokocoko, Ruaridh.
 Berries: 0 harvestable, 0 unwatered, 9 total
 List of friends:
- Matt21228 (United States of America) - 5 friends, Berries: 0 harvestable, 0 unwatered, 6 total
- tepig1 (United Kingdom ) - 4 friends, Berries: 0 harvestable, 1 unwatered, 6 total
- Tatertot745 (United States of America) - 5 friends, Berries: 1 harvestable, 0 unwatered, 6 total
- Pasqui (Belgium) - 2 friends, Berries: 0 harvestable, 0 unwatered, 9 total
- Abumi (Czech Republic) - 5 friends, Berries: 0 harvestable, 0 unwatered, 9 total
+ Tatertot745 (United States of America) - 5 friends, Berries: 4 harvestable, 0 unwatered, 6 total
+ Matt21228 (United States of America) - 5 friends, Berries: 1 harvestable, 5 unwatered, 9 total
+ tepig1 (United Kingdom ) - 5 friends, Berries: 6 harvestable, 0 unwatered, 6 total
+ Pasqui (Belgium) - 5 friends, Berries: 0 harvestable, 0 unwatered, 9 total
+ Abumi (Czech Republic) - 5 friends, Berries: 0 harvestable, 1 unwatered, 9 total
+Do you want to automatically water berries? y
+Remains watering: 17
+Remains watering: 16
+[...]
+Remains watering: 1
+Remains watering: 0
+Done watering!
 
 If you can't play, you'll get a nice error similar to this:
 RuntimeError: (403, 'Forbidden', {'default': 'Your time to play in the Pokémon DW is over for today.\\nYou can play again tomorrow.', 'is_pdw_timeout': 1})
