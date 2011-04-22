@@ -25,6 +25,10 @@ Remains watering: 1
 Remains watering: 0
 Done watering!
 
+Actually, it doesn't quite work.  If you're getting:
+RuntimeError: (403, 'Forbidden', {'default': 'Please log in.', 'is_session_timeout': 1})
+Try copying the PMDSUSSID cookie for pokemon-gl.com from your browser and pasting it in PMDSUSSID.
+
 If you can't play, you'll get a nice error similar to this:
 RuntimeError: (403, 'Forbidden', {'default': 'Your time to play in the Pokémon DW is over for today.\\nYou can play again tomorrow.', 'is_pdw_timeout': 1})
 However, you should still get your name and game info.
@@ -32,4 +36,4 @@ However, you should still get your name and game info.
 Planned features:
 - Search for a certain player (by name, country, item put up for trade, etc.)
 - Make a nice spiderweb diagram of the neighbourhood!
-- Modularize, make a dwlib.py
+- ???
