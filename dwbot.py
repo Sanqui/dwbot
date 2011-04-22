@@ -6,11 +6,13 @@ import http.client
 from urllib.parse import urlencode
 import json
 
+debug = False
 
 class DWSession():
     def __init__(self):
         self.token = None
         self.PMDSUSSID = None
+        self.serv = "en"
         
     def get_PMDSUSSID(self, username, password):
         form_conn = http.client.HTTPSConnection("sso.pokemon.com")
@@ -46,19 +48,20 @@ class DWSession():
             with open("PMDSUSSID", "r") as f:
                 self.PMDSUSSID = f.read().strip()
         
-        init = self.request_page("pgl.top.init", "en")
+        init = self.request_page("pgl.top.init")
         self.member = init['member']
         self.token = init['token']
         if self.member == None or self.token == None:
-            sys.exit ("Login failed.  Run python3 dwbot.py username, or copy the PMDSUSSID cookie for pokemon-gl.com from your browser manually, and paste it in ./PMDSUSSID.")
+            sys.exit ("Failed at getting the token.  Run python3 dwbot.py username, or copy the PMDSUSSID cookie for pokemon-gl.com from your browser manually and paste it in ./PMDSUSSID.")
         else:
             print ("Got token!")
             if self.member['member_savedata_id'] == None:
                 sys.exit("Please enter the dream world normally first.")
+            self.serv = "pdw"+self.member['world_id']
             print("{} - game {} ({}), Pokémon {}".format(self.member['pgl_name'], self.member['rom_name'], self.member['player_name'], self.member['pokemon_name']))
 
-    def request_page(self, p, serv="pdw3", action="GET", **kvargs):
-        conn = http.client.HTTPConnection(serv+".pokemon-gl.com")
+    def request_page(self, p, action="GET", **kvargs):
+        conn = http.client.HTTPConnection(self.serv+".pokemon-gl.com")
         url = "/api/?"
         headers = {"Cookie": "PMDSUSSID={}; locale=en".format(self.PMDSUSSID)}
         get = [("p", p)]
@@ -67,6 +70,7 @@ class DWSession():
         if self.token != None:
             get.append(("token", self.token))
         get += kvargs.items()
+        if debug: print(get)
         if action == "GET":
             url += urlencode(get)
             data = None
@@ -80,6 +84,7 @@ class DWSession():
         if 'error' in tree:
             error = tree['error']
             raise RuntimeError(error['code'], error['mess'], error['details'])
+        if debug: print(tree)
         return tree
     
 if len(argv)>1:
@@ -105,6 +110,7 @@ def berry_stats(croft_list):
     
 dw = DWSession()
 dw.get_token()
+
 visitor_data = dw.request_page("pdw.home.footprint_list", rowcount=28, offset=0)
 requests = []
 for visitor in visitor_data['list']:

@@ -2,7 +2,8 @@ An experimental bot to automatize actions for the Pokémon Dream World.
 This script is licenced under the zlib licence.  See LICENCE for details.
 
 Current usage:
-$ python3 dwbot.py username password
+$ python3 dwbot.py username
+Please type your password:
 Logging in.
 Successfully logged in, run the script without arguments now.
 $ python3 dwbot.py
@@ -31,5 +32,4 @@ However, you should still get your name and game info.
 Planned features:
 - Search for a certain player (by name, country, item put up for trade, etc.)
 - Make a nice spiderweb diagram of the neighbourhood!
-- Automatically water berries
-- ???
+- Modularize, make a dwlib.py
